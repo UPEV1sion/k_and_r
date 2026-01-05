@@ -1,5 +1,5 @@
 CC     := gcc
-CFLAGS := -Wall -Wextra -Werror -pedantic
+CFLAGS := -std=c99 -Wall -Wextra -Werror -pedantic
 SRC    := src
 OUT    := out
 

@@ -1,11 +1,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#define ALPH_SIZE 256
-
 unsigned setbits(unsigned x, const int p, const int n, unsigned y)
 {
-    const unsigned mask = ~(~0 << n);
+    const unsigned mask = ~(~0u << n);
     x &= ~(mask << (p+1-n));
     y = (y & mask) << (p+1-n);
 

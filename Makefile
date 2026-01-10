@@ -12,7 +12,7 @@ DIRS := $(sort $(dir $(BINS)))
 all: $(BINS)
 
 $(OUT)/%.bin: $(SRC)/%.c | $(DIRS)
-	$(CC) $(CFLAGS) $< -o $@
+	$(CC) $(CFLAGS) $< -o $@ -lm
 
 $(DIRS):
 	mkdir -p $@

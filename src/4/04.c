@@ -81,7 +81,7 @@ int getop(char s[])
         s[++i] = c = next;
     }
 
-    if(isdigit(c) || c == '-')
+    if(isdigit(c))
         while(isdigit(s[++i] = c = getch()))
             ;
     if(c == '.')

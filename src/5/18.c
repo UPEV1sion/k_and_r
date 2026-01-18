@@ -18,12 +18,12 @@ char name[MAXTOKEN];
 char datatype[MAXTOKEN];
 char out[1000];
 
+bool error_happened;
+
 int getch(void);
 void ungetch(int c);
 
-bool error_happened;
-
-int main(void)
+void declare(void)
 {
 	while(gettoken() != EOF)
 	{
@@ -36,6 +36,63 @@ int main(void)
 
 		if(tokentype != '\n') fprintf(stderr, "syntax error\n");
 		else printf("%s: %s %s\n", name, out, datatype);
+	}
+}
+
+void undeclare(void)
+{
+	int type;
+	char temp[2048];
+
+	while(gettoken() != EOF)
+	{
+		strcpy(out, token);
+		while((type = gettoken()) != '\n')
+		{
+			if(type == PARENS || type == BRACKETS)
+			{
+				strcat(out, token);
+			}
+			else if(type == '*')
+			{
+				sprintf(temp, "(*%s)", out);
+				strcpy(out, temp);
+			}
+			else if(type == NAME)
+			{
+				sprintf(temp, "%s %s", token, out);
+				strcpy(out, temp);
+			}
+			else
+			{
+				printf("invalid input at %s\n", token);
+			}
+		}
+		puts(out);
+	}
+}
+
+int main(int argc, char **argv)
+{
+	if(argc > 1)
+	{
+		if(0 == strcmp(argv[1], "-d")) 
+		{
+			declare();
+		}
+		else if(0 == strcmp(argv[1], "-u")) 
+		{
+			undeclare();
+		}
+		else
+		{
+			fprintf(stderr, "error: unknown flag: %s\n", argv[1]);
+			return 1;
+		}
+	}
+	else 
+	{
+		declare();
 	}
 
 	return 0;

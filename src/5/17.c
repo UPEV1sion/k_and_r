@@ -25,6 +25,25 @@ enum Flags {
 static unsigned char options;
 static unsigned int field;
 
+void get_flags(int argc, char **argv);
+
+int main(int argc, char **argv)
+{
+	int nlines;
+    get_flags(argc, argv);
+
+	if((nlines = readlines(lineptr, MAXLINE)) >= 0)
+	{
+		quick_sort((void **)lineptr, 0, nlines - 1, (options & NUMERIC) ? num_cmp: str_cmp);
+
+		writelines(lineptr, nlines, (options & REVERSE) != 0);
+		return 0;
+    }
+
+    printf("input too big to sort\n");
+    return 1;
+}
+
 void get_flags(int argc, char **argv)
 {
     while(--argc > 0 && (*++argv)[0] == '-')
@@ -34,9 +53,9 @@ void get_flags(int argc, char **argv)
         {
             switch(*cur_flag)
             {
-                case 'r': options |= REVERSE; break;
-                case 'n': options |= NUMERIC; break;
-                case 'f': options |= FOLD; break;
+                case 'r': options |= REVERSE;	break;
+                case 'n': options |= NUMERIC; 	break;
+                case 'f': options |= FOLD; 		break;
                 case 'd': options |= DIRECTORY; break;
                 case 'k': 
 					if(--argc > 0)
@@ -56,23 +75,6 @@ void get_flags(int argc, char **argv)
             }
         }
     }
-}
-
-int main(int argc, char **argv)
-{
-	int nlines;
-    get_flags(argc, argv);
-
-	if((nlines = readlines(lineptr, MAXLINE)) >= 0)
-	{
-		quick_sort((void **)lineptr, 0, nlines - 1, (options & NUMERIC) ? num_cmp: str_cmp);
-
-		writelines(lineptr, nlines, (options & REVERSE) != 0);
-		return 0;
-    }
-
-    printf("input too big to sort\n");
-    return 1;
 }
 
 #define ALLOCSIZE 10000

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 #define MAXLINE 5000
 char *lineptr[MAXLINE];
@@ -12,10 +13,12 @@ void writelines(char *lines[], int nlines, bool reverse);
 void quick_sort(void *lineptr[], int left, int right, int (*comp) (void *, void *));
 int num_cmp(void *, void *);
 int str_cmp(void *, void *);
+int str_case_cmp(void *, void *);
 
 enum Flags {
     NUMERIC = (1 << 0),
-    REVERSE = (1 << 1)
+    REVERSE = (1 << 1),
+	FOLD = (1 << 2)
 };
 
 unsigned char get_flags(int argc, char **argv)
@@ -30,6 +33,7 @@ unsigned char get_flags(int argc, char **argv)
             {
                 case 'r': options |= REVERSE; break;
                 case 'n': options |= NUMERIC; break;
+                case 'f': options |= FOLD; break;
                 default: 
                     fprintf(stderr, "Unknown option -%c\n", *cur_flag); 
                     exit(1);
@@ -136,6 +140,19 @@ int num_cmp(void *s1, void *s2)
     const double v1 = atof((char *)s1);
     const double v2 = atof((char *)s2);
     return (v1 > v2) - (v1 < v2);
+}
+
+int str_case_cmp(void *v1, void *v2)
+{
+	char *s1 = v1;
+	char *s2 = v2;
+	for(; *s1 && tolower((unsigned char) *s1) == tolower((unsigned char) *s2); s1++, s2++)
+		;
+
+	const char c1 = tolower((unsigned char) *s1);
+	const char c2 = tolower((unsigned char) *s2);
+
+	return (c1 > c2) - (c1 < c2);
 }
 
 int str_cmp(void *s1, void *s2)

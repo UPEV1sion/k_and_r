@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #define MAXTOKEN 100
 
@@ -20,14 +21,20 @@ char out[1000];
 int getch(void);
 void ungetch(int c);
 
+bool error_happened;
+
 int main(void)
 {
 	while(gettoken() != EOF)
 	{
 		strcpy(datatype, token);
-		out[0] = 0;
+		out[0]         = 0;
+		error_happened = false;
 		dcl();
-		if(tokentype != '\n') printf("syntax error\n");
+
+		if(error_happened) continue;
+
+		if(tokentype != '\n') fprintf(stderr, "syntax error\n");
 		else printf("%s: %s %s\n", name, out, datatype);
 	}
 
@@ -75,14 +82,24 @@ int gettoken(void)
 	}
 }
 
+void skip_to_end(void)
+{
+	int c;
+	while((c = gettoken()) != EOF && c != '\n')
+		;
+}
+
 void dcl(void)
 {
-	int star_count;
-	for(star_count = 0; gettoken() == '*'; )
+	int star_count = 0;
+	
+	while(gettoken() == '*')
 	{
 		star_count++;
 	}
+	
 	dirdcl();
+	
 	while(star_count-- > 0)
 	{
 		strcat(out, " pointer to");
@@ -96,7 +113,12 @@ void dirdcl(void)
 	if(tokentype == '(')
 	{
 		dcl();
-		if(tokentype != ')') fprintf(stderr, "error: missing )\n");
+		if(tokentype != ')')
+		{
+			fprintf(stderr, "error: missing )\n");
+			error_happened = true;
+			return;
+		}
 	}
 	else if (tokentype == NAME)
 	{
@@ -105,6 +127,8 @@ void dirdcl(void)
 	else
 	{
 		fprintf(stderr, "error: expected name or (dcl)\n");
+		error_happened = true;
+		return;
 	}
 
 	while((type = gettoken()) == PARENS || type == BRACKETS)

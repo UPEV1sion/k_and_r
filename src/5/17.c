@@ -18,10 +18,12 @@ int str_case_cmp(void *, void *);
 enum Flags {
     NUMERIC = (1 << 0),
     REVERSE = (1 << 1),
-	FOLD = (1 << 2)
+	FOLD = (1 << 2),
+	DIRECTORY = (1 << 3)
 };
 
 static unsigned char options;
+static unsigned int field;
 
 void get_flags(int argc, char **argv)
 {
@@ -35,6 +37,18 @@ void get_flags(int argc, char **argv)
                 case 'r': options |= REVERSE; break;
                 case 'n': options |= NUMERIC; break;
                 case 'f': options |= FOLD; break;
+                case 'd': options |= DIRECTORY; break;
+                case 'k': 
+					if(--argc > 0)
+					{
+						field = atoi(*++argv);
+					}
+					else
+					{
+						fprintf(stderr, "-k required a field number!\n");
+						exit(1);
+					}
+					break;
                 default: 
                     fprintf(stderr, "Unknown option -%c\n", *cur_flag); 
                     exit(1);
@@ -135,6 +149,18 @@ void writelines(char *lines[], const int nlines, const bool reverse)
     }
 }
 
+char* get_field(char *line, int field_num)
+{
+	char *p = line;
+	for(int i = 1; i < field_num && *p; ++i)
+	{
+		while(*p && !isspace((unsigned char) *p)) p++;
+		while(*p && isspace((unsigned char) *p)) p++;
+	}
+	
+	return p;
+}
+
 int num_cmp(void *s1, void *s2)
 {
     const double v1 = atof((char *)s1);
@@ -149,11 +175,17 @@ int is_dir_char(int c)
 
 int str_cmp(void *v1, void *v2)
 {
-	char *s1 = v1;
-	char *s2 = v2;
+	char *s1 = get_field(v1, field);
+	char *s2 = get_field(v2, field);
 	
 	for(;;)
 	{
+		if(options & DIRECTORY)
+		{
+				while(*s1 && !is_dir_char((unsigned char) *s1)) s1++;
+				while(*s2 && !is_dir_char((unsigned char) *s2)) s2++;
+		}
+		
 		char c1 = *s1;
 		char c2 = *s2;
 		

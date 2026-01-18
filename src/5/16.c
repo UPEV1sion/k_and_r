@@ -18,7 +18,8 @@ int str_case_cmp(void *, void *);
 enum Flags {
     NUMERIC = (1 << 0),
     REVERSE = (1 << 1),
-	FOLD = (1 << 2)
+	FOLD = (1 << 2),
+	DIRECTORY = (1 << 3)
 };
 
 static unsigned char options;
@@ -35,6 +36,7 @@ void get_flags(int argc, char **argv)
                 case 'r': options |= REVERSE; break;
                 case 'n': options |= NUMERIC; break;
                 case 'f': options |= FOLD; break;
+                case 'd': options |= DIRECTORY; break;
                 default: 
                     fprintf(stderr, "Unknown option -%c\n", *cur_flag); 
                     exit(1);
@@ -154,6 +156,12 @@ int str_cmp(void *v1, void *v2)
 	
 	for(;;)
 	{
+		if(options & DIRECTORY)
+		{
+				while(*s1 && !is_dir_char((unsigned char) *s1)) s1++;
+				while(*s2 && !is_dir_char((unsigned char) *s2)) s2++;
+		}
+		
 		char c1 = *s1;
 		char c2 = *s2;
 		

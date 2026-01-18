@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 #define MAXLINE 5000
 char *lineptr[MAXLINE];
@@ -12,15 +13,17 @@ void writelines(char *lines[], int nlines, bool reverse);
 void quick_sort(void *lineptr[], int left, int right, int (*comp) (void *, void *));
 int num_cmp(void *, void *);
 int str_cmp(void *, void *);
+int str_case_cmp(void *, void *);
 
 enum Flags {
     NUMERIC = (1 << 0),
-    REVERSE = (1 << 1)
+    REVERSE = (1 << 1),
 };
 
-unsigned char get_flags(int argc, char **argv)
+static unsigned char options;
+
+void get_flags(int argc, char **argv)
 {
-	unsigned char options = 0;
     while(--argc > 0 && (*++argv)[0] == '-')
     {
         char *cur_flag = *argv;
@@ -37,17 +40,16 @@ unsigned char get_flags(int argc, char **argv)
             }
         }
     }
-	return options;
 }
 
 int main(int argc, char **argv)
 {
 	int nlines;
-    const unsigned char options = get_flags(argc, argv);
+    get_flags(argc, argv);
 
 	if((nlines = readlines(lineptr, MAXLINE)) >= 0)
 	{
-		quick_sort((void **)lineptr, 0, nlines - 1, (options & NUMERIC) ? num_cmp : str_cmp);
+		quick_sort((void **)lineptr, 0, nlines - 1, (options & NUMERIC) ? num_cmp: str_cmp);
 
 		writelines(lineptr, nlines, (options & REVERSE) != 0);
 		return 0;
@@ -127,7 +129,7 @@ void writelines(char *lines[], const int nlines, const bool reverse)
 {
     for(int i = 0; i < nlines; ++i)
     {
-        puts(reverse ? lines[i] : lines[nlines - i - 1]);
+        puts(reverse ? lines[nlines - i - 1] : lines[i]);
     }
 }
 
@@ -138,9 +140,27 @@ int num_cmp(void *s1, void *s2)
     return (v1 > v2) - (v1 < v2);
 }
 
-int str_cmp(void *s1, void *s2)
+int is_dir_char(int c)
 {
-    return strcmp((char *) s1, (char *) s2);    
+    return isalnum(c) || c == ' ';
+}
+
+int str_cmp(void *v1, void *v2)
+{
+	char *s1 = v1;
+	char *s2 = v2;
+	
+	for(;;)
+	{
+		char c1 = *s1;
+		char c2 = *s2;
+		
+		if(c1 != c2) return (c1 > c2) - (c1 < c2);
+		if(c1 == 0) return 0;
+		
+		s1++;
+		s2++;
+	}
 }
 
  void swap(void *v[], const int i , const int j)
@@ -168,4 +188,3 @@ void quick_sort(void *v[], const int left, const int right, int (*comp) (void *,
     quick_sort(v, left, last - 1, comp);
     quick_sort(v, last + 1, right, comp);
 }
-

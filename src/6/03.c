@@ -147,6 +147,7 @@ void free_tree(TNode *tree)
     free_tree(tree->right);
     free_tree(tree->left);
     free_lines(tree->lines);
+    free(tree->word);
     free(tree);
 }
 

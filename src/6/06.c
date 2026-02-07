@@ -200,6 +200,8 @@ int getword(char *word, int lim)
                 if(!isdigit((unsigned char) (*w = c = getch()))) break;
             }
         }
+
+        if(c != EOF) ungetch(c);
     }
 
     *w = 0;
@@ -244,45 +246,56 @@ int getdefn(char *buffer, int lim)
     return 0;
 }
 
-int main(void)
+int preprocessor_directive(const char *token)
 {
     char name[BUFSIZE];
     char defn[BUFSIZE];
 
+    if(strcmp("#define", token) == 0)
+    {
+        if(getword(name, sizeof name) == EOF || getdefn(defn, sizeof defn) == EOF)
+        {
+            fprintf(stderr, "error: while processing \"#define\" EOF occured!\n");
+            return 1;
+        }
+
+        if(install(name, defn) == NULL)
+        {
+            fprintf(stderr, "error: too many preprocessor macros!\n");
+            return 1;
+        }
+    }
+    else if(strcmp("#undef", token) == 0)
+    {
+        if(getword(name, sizeof name) == EOF)
+        {
+            fprintf(stderr, "error: while processing \"#undef\" EOF occured\n");
+            return 1;
+        }
+
+        if(undef(name) != 0)
+        {
+            fprintf(stderr, "error: could not undef \"%s\": macro is not defined!\n", name);
+            return 1;
+        }
+    }
+    else
+    {
+        printf("%s ", token);
+    }
+
+    return 0;
+}
+
+int main(void)
+{
     char token[BUFSIZE];
     int type;
     while((type = getword(token, sizeof token)) != EOF)
     {
         if(type == '#')
         {
-            if(strcmp("#define", token) == 0)
-            {
-                if(getword(name, sizeof name) == EOF || getdefn(defn, sizeof defn) == EOF)
-                {
-                    fprintf(stderr, "error: while processing \"#define\" EOF occured!\n");
-                    return 1;
-                }
-
-                if(install(name, defn) == NULL)
-                {
-                    fprintf(stderr, "error: too many preprocessor macros!\n");
-                    return 1;
-                }
-            }
-            else if(strcmp("#undef", token) == 0)
-            {
-                if(getword(name, sizeof name) == EOF)
-                {
-                    fprintf(stderr, "error: while processing \"#undef\" EOF occured\n");
-                    return 1;
-                }
-
-                if(undef(name) != 0)
-                {
-                    fprintf(stderr, "error: could not undef \"%s\": macro is not defined!\n", name);
-                    return 1;
-                }
-            }
+            if(preprocessor_directive(token) != 0) return 1;
         }
         else if(isalpha((unsigned char) type) || type == '_')
         {

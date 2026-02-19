@@ -24,10 +24,11 @@ int main(int argc, char **argv)
 
     for(size_t line = 1;; ++line)
     {
-        if(fgets(buf1, ARRAY_LEN(buf1), f1) == NULL) break;
-        if(fgets(buf2, ARRAY_LEN(buf2), f2) == NULL) break;
+        char *s1 = fgets(buf1, ARRAY_LEN(buf1), f1);
+        char *s2 = fgets(buf2, ARRAY_LEN(buf2), f2);
+        if(!s1 || !s2) break;
 
-        if(strncmp(buf1, buf2, ARRAY_LEN(buf1)) != 0)
+        if(strcmp(buf1, buf2) != 0)
         {
             puts("Difference detected!");
             printf("%s:%zu: %s", argv[1], line, buf1);
@@ -35,10 +36,15 @@ int main(int argc, char **argv)
             goto defer;
         }
     }
-    
-    puts("No difference found!");
-    if (ferror(f1)) perror("Error reading first file");
-    if (ferror(f2)) perror("Error reading second file");
+
+    if(!feof(f1) || !feof(f2))
+    {
+        puts("Files differ in length!");
+    }
+    else
+    {
+        puts("No difference found!");
+    }
 
 defer:
     fclose(f1);
@@ -46,3 +52,4 @@ defer:
 
     return 0;
 }
+

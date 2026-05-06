@@ -4,7 +4,6 @@
 #include <unistd.h>
 
 #define EOF (-1)
-#define BUFSIZ 1024
 #define OPEN_MAX 20
 
 typedef struct {
